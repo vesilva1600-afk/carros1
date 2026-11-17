@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "wsl.exe",
+            "args": [
+                "/home/llucena/.config/herd-lite/bin/php",
+                "/home/llucena/workspace/carros/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
