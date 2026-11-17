@@ -1,10 +1,21 @@
-FROM richarvey/nginx-php-fpm:3.1.6
+FROM php:8.5-cli
 
-# Copia todo o projeto para dentro do container
-COPY . /var/www/html
+RUN apt-get update && apt-get install -y git unzip libzip-dev \
+    && docker-php-ext-install zip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Configurações do ambiente Nginx e PHP
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+COPY . .
+
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && chmod -R 775 storage bootstrap/cache
+
+ENV PHP_CLI_SERVER_WORKERS=4
+
+CMD touch database/database.sqlite \
+    && php artisan migrate:fresh --seed --force \
+    && php artisan storage:link \
+    && php artisan config:cache \
+    && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
